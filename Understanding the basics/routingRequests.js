@@ -11,7 +11,18 @@ const server = http.createServer((req, res) => {
         return res.end();
     }
     if (url === '/message' && method === 'POST') {
-        fs.writeFileSync('message.txt', 'DUMMY')
+        const body = [];
+        // Create an event listener to use a buffer and fetch data chunks
+        req.on('data', (data) => {
+            console.log(data)
+            body.push(data);
+        })
+        // 'End' event will be triggered when data has been recieved
+        req.on('end', () => {
+            const parsedBody = Buffer.concat(body).toString();
+            const message = parsedBody.split('=')[1];
+            fs.writeFileSync('message.txt', message)
+        });
         res.writeHead(302, {'Location': '/'})
         return res.end();
     }
