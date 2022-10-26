@@ -18,13 +18,21 @@ const server = http.createServer((req, res) => {
             body.push(data);
         })
         // 'End' event will be triggered when data has been recieved
-        req.on('end', () => {
+        return req.on('end', () => {
             const parsedBody = Buffer.concat(body).toString();
             const message = parsedBody.split('=')[1];
-            fs.writeFileSync('message.txt', message)
+
+            // This function stops the running application until it finishes. Is not the best practice
+            // fs.writeFileSync('message.txt', message)
+
+            // This function doesn't block the operation of the server
+            // Third argument is a callback that will be called when the operation is done
+            // error will be null if the operation was successful
+            fs.writeFile('message.txt', message, err => {
+                res.writeHead(302, {'Location': '/'})
+                return res.end();
+            })
         });
-        res.writeHead(302, {'Location': '/'})
-        return res.end();
     }
     res.write('<html>');
     res.write('<head><title>My first page</title></head>');
