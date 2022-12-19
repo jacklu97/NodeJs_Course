@@ -59,3 +59,20 @@ exports.getProducts = (req, res, next) => {
     });
   });
 };
+
+// // Personal solution
+// exports.postDeleteProduct = (req, res, next) => {
+//   const productId = req.body.productId;
+//   Product.deleteById(productId, (result) => {
+//     if(result) {
+//       res.redirect('products')
+//     }
+//   });
+// }
+
+
+exports.postDeleteProduct = (req, res, next) => {
+  const prodId = req.body.productId;
+  Product.deleteById(prodId);
+  res.redirect('/admin/products')
+}
