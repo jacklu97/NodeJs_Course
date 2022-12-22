@@ -13,11 +13,16 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  Product.create({
+  
+  /*
+    This is some "magic" added by sequelize using relationships declared on the app.js file
+    User object has all methods from sequelize and then can create objetcs like this
+  */
+  req.user.createProduct({
     title,
     imageUrl,
     price,
-    description
+    description,
   }).then(() => {
     console.log("Created product!")
     res.redirect('/admin/products')
