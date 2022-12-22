@@ -2,40 +2,52 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
-    .then(([rows]) => {
-      res.render('shop/product-list', {
-        prods: rows,
-        pageTitle: 'All Products',
-        path: '/products'
-      });
-    })
-    .catch(err => console.error(err));
+  Product.findAll().then((products) => {
+    res.render('shop/product-list', {
+      prods: products,
+      pageTitle: 'All Products',
+      path: '/products'
+    });
+  })
+  .catch((err) => console.log(err))
 };
 
 exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
-  Product.findById(prodId).then(([rows]) => {
-    const product = rows[0];
+  // This sintax allows you to query using the equivalent of a WHERE on SQL
+
+  // Product.findAll({
+  //   where: { id: prodId }
+  // })
+  // .then(([product]) => {
+  //   console.log(product);
+  //   res.render('shop/product-detail', {
+  //     product,
+  //     pageTitle: product.title,
+  //     path: '/products'
+  //   });
+  // })
+  // .catch(err => console.log(err))
+  
+  Product.findByPk(prodId).then((product) => {
     res.render('shop/product-detail', {
       product,
       pageTitle: product.title,
       path: '/products'
     });
   })
-  .catch(err => console.error(err));
+  .catch((err) => console.log(err))
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll()
-    .then(([rows, fieldData]) => {
-      res.render('shop/index', {
-        prods: rows,
-        pageTitle: 'Shop',
-        path: '/'
-      });
-    })
-    .catch(err => console.error(err));
+  Product.findAll().then((products) => {
+    res.render('shop/index', {
+      prods: products,
+      pageTitle: 'Shop',
+      path: '/'
+    });
+  })
+  .catch((err) => console.log(err))
 };
 
 exports.getCart = (req, res, next) => {
