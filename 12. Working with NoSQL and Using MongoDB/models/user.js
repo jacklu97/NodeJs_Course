@@ -30,9 +30,24 @@ class User {
   }
 
   addToCart(product) {
-    // const cartProduct = this.cart.items.findIndex(cp => product._id === cp._id)
+    const cartProductIndex = this.cart.items.findIndex(
+      (cp) => product._id.toString() === cp.productId.toString()
+    );
+    let newQuantity = 1;
+    const updatedCartItems = [...this.cart.items];
+
+    if (cartProductIndex >= 0) {
+      newQuantity += this.cart.items[cartProductIndex].quantity;
+      updatedCartItems[cartProductIndex].quantity = newQuantity;
+    } else {
+      updatedCartItems.push({
+        productId: new ObjectId(product._id),
+        quantity: newQuantity,
+      });
+    }
+
     const updatedCart = {
-      items: [{ productId: new ObjectId(product._id), quantity: 1 }],
+      items: updatedCartItems,
     };
     return getDb()
       .collection(COLLECTION_NAME)
@@ -44,6 +59,70 @@ class User {
 
     // })
     // .catch(e => console.log(e))
+  }
+
+  getCart() {
+    return getDb()
+      .collection("products")
+      .find({ _id: { $in: this.cart.items.map((cp) => cp.productId) } })
+      .toArray()
+      .then((products) => {
+        return products.map((product) => {
+          return {
+            ...product,
+            quantity: this.cart.items.find(
+              (item) => item.productId.toString() === product._id.toString()
+            ).quantity,
+          };
+        });
+      });
+  }
+
+  deleteItemFromCart(productId) {
+    const updatedCartItems = [
+      ...this.cart.items.filter(
+        (e) => e.productId.toString() !== productId.toString()
+      ),
+    ];
+
+    return getDb()
+      .collection(COLLECTION_NAME)
+      .updateOne(
+        { _id: new ObjectId(this._id) },
+        { $set: { cart: { items: updatedCartItems } } }
+      );
+  }
+
+  addOrder() {
+    return this.getCart()
+      .then((products) => {
+        const order = {
+          items: products,
+          user: {
+            _id: new ObjectId(this._id),
+            name: this.name,
+            email: this.email,
+          },
+        };
+
+        return getDb().collection("orders").insertOne(order);
+      })
+      .then((result) => {
+        this.cart = { items: [] };
+        return getDb()
+          .collection(COLLECTION_NAME)
+          .updateOne(
+            { _id: new ObjectId(this._id) },
+            { $set: { cart: { items: [] } } }
+          );
+      });
+  }
+
+  getOrders() {
+    return getDb()
+      .collection("orders")
+      .find({ "user._id": new ObjectId(this._id) })
+      .toArray()
   }
 
   static findById(userId) {
